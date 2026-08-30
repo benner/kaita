@@ -16,16 +16,23 @@ const summaryElement = document.getElementById("summary");
 const panes = {
   diff: document.getElementById("diff"),
   source: document.getElementById("source"),
+  page: document.getElementById("page"),
 };
+const frameElement = document.getElementById("frame");
+const pageUrlElement = document.getElementById("page-url");
 const tabButtons = [...document.querySelectorAll(".tab")];
+const renderRadios = [...document.querySelectorAll('input[name="render"]')];
 
 let revisions = [];
 let oldId = null;
 let newId = null;
 let followLatest = true;
 let activePane = "diff";
+let renderRole = "new";
+let pageStale = true;
+let renderedPageId = null;
 let renderToken = 0;
-const htmlCache = new Map();
+const snapshotCache = new Map();
 
 function pad(value, width) {
   return String(value).padStart(width, "0");
@@ -55,12 +62,28 @@ function splitLines(value) {
   return lines;
 }
 
-async function getHtml(id) {
-  if (!htmlCache.has(id)) {
+function escapeAttribute(value) {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
+function withBase(html, url) {
+  const base = `<base href="${escapeAttribute(url)}">`;
+  const headPattern = /<head[^>]*>/i;
+  return headPattern.test(html)
+    ? html.replace(headPattern, (match) => match + base)
+    : base + html;
+}
+
+async function getSnapshot(id) {
+  if (!snapshotCache.has(id)) {
     const record = await api.runtime.sendMessage({ type: "get", id });
-    htmlCache.set(id, prettyPrint(record.html));
+    snapshotCache.set(id, {
+      raw: record.html,
+      url: record.url,
+      pretty: prettyPrint(record.html),
+    });
   }
-  return htmlCache.get(id);
+  return snapshotCache.get(id);
 }
 
 async function fetchRevisions() {
@@ -181,20 +204,45 @@ function renderDiff(oldHtml, newHtml) {
   summaryElement.textContent = `+${added} −${removed}`;
 }
 
+async function renderPage() {
+  const id = renderRole === "old" ? oldId : newId;
+  if (id === null) {
+    return;
+  }
+  pageStale = false;
+  if (id === renderedPageId) {
+    return;
+  }
+  const snapshot = await getSnapshot(id);
+  frameElement.srcdoc = withBase(snapshot.raw, snapshot.url);
+  pageUrlElement.textContent = snapshot.url;
+  renderedPageId = id;
+}
+
 async function renderPanes() {
   const token = ++renderToken;
   if (newId === null) {
     panes.diff.replaceChildren();
     panes.source.textContent = "";
     summaryElement.textContent = "";
+    frameElement.removeAttribute("srcdoc");
+    pageUrlElement.textContent = "";
+    renderedPageId = null;
     return;
   }
-  const [oldHtml, newHtml] = await Promise.all([getHtml(oldId), getHtml(newId)]);
+  const [oldSnapshot, newSnapshot] = await Promise.all([
+    getSnapshot(oldId),
+    getSnapshot(newId),
+  ]);
   if (token !== renderToken) {
     return;
   }
-  renderDiff(oldHtml, newHtml);
-  panes.source.textContent = newHtml;
+  renderDiff(oldSnapshot.pretty, newSnapshot.pretty);
+  panes.source.textContent = newSnapshot.pretty;
+  pageStale = true;
+  if (activePane === "page") {
+    renderPage();
+  }
 }
 
 function render() {
@@ -215,6 +263,9 @@ function showPane(name) {
   }
   for (const button of tabButtons) {
     button.classList.toggle("active", button.dataset.pane === activePane);
+  }
+  if (activePane === "page" && pageStale) {
+    renderPage();
   }
 }
 
@@ -243,8 +294,8 @@ function handleKey(event) {
 
 async function exportSnapshot() {
   const revision = revisions.find((candidate) => candidate.id === newId);
-  const record = await api.runtime.sendMessage({ type: "get", id: newId });
-  const blob = new Blob([record.html], { type: "text/html" });
+  const snapshot = await getSnapshot(newId);
+  const blob = new Blob([snapshot.raw], { type: "text/html" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -265,6 +316,12 @@ async function pollRecording() {
 
 for (const button of tabButtons) {
   button.addEventListener("click", () => showPane(button.dataset.pane));
+}
+for (const radio of renderRadios) {
+  radio.addEventListener("change", () => {
+    renderRole = radio.value;
+    renderPage();
+  });
 }
 exportButton.addEventListener("click", exportSnapshot);
 document.addEventListener("keydown", handleKey);

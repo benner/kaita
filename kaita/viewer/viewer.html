@@ -35,10 +35,19 @@
       <nav>
         <button class="tab" data-pane="diff">Diff</button>
         <button class="tab" data-pane="source">Source</button>
+        <button class="tab" data-pane="page">Page</button>
         <span id="summary"></span>
       </nav>
       <pre id="diff" class="pane"></pre>
       <pre id="source" class="pane" hidden></pre>
+      <div id="page" class="pane" hidden>
+        <div class="page-toolbar">
+          <label><input type="radio" name="render" value="old" /> old</label>
+          <label><input type="radio" name="render" value="new" checked /> new</label>
+          <span id="page-url"></span>
+        </div>
+        <iframe id="frame" sandbox="" title="Rendered snapshot"></iframe>
+      </div>
     </main>
     <script type="module" src="viewer.js"></script>
   </body>

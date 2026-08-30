@@ -26,7 +26,11 @@ size; the `old` / `new` radio columns pick the pair to compare, defaulting to
 the last two. `j` / `k` move the `new` selection, `Shift` + `j` / `k` move
 `old`. **Diff** shows a unified line diff of the pretty-printed HTML with
 unchanged regions collapsed to three lines of context; **Source** shows the
-`new` snapshot. **Export** downloads the `new` snapshot as `<timestamp>.html`.
+`new` snapshot; **Page** renders the `old` or `new` snapshot in a sandboxed
+frame (scripts disabled). The snapshot is the DOM only: inline styles are
+exact, but external stylesheets, images and fonts are fetched from the live
+site, so the render can differ if the site has changed them since.
+**Export** downloads the `new` snapshot as `<timestamp>.html`.
 The list refreshes every two seconds while the tab is still recording.
 
 ## Development
