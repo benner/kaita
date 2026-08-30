@@ -1,0 +1,33 @@
+---
+name: Lint JavaScript
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        # yamllint disable-line rule:line-length
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        # yamllint disable-line rule:line-length
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6.5.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install dependencies
+        run: npm ci
+      - name: Run eslint
+        # yamllint disable-line rule:line-length
+        uses: reviewdog/action-eslint@556a3fdaf8b4201d4d74d406013386aa4f7dab96  # v1.34.0
+        with:
+          github_token: ${{ github.token }}
+          reporter: github-pr-review
+          fail_level: error

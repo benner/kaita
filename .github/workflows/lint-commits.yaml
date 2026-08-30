@@ -1,0 +1,26 @@
+---
+name: Lint commits
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  lint-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        # yamllint disable-line rule:line-length
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Cache NLTK data
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/nltk_data
+          key: nltk-averaged-perceptron-tagger-punkt
+      - name: Lint commits
+        # yamllint disable-line rule:line-length
+        uses: benner/commit-guard@1a6eb6a4995e4c6193c9d06a172ad98190ec39cc  # v0.24.1
+        with:
+          range: origin/${{ github.base_ref }}..HEAD

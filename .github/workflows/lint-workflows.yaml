@@ -1,0 +1,73 @@
+---
+name: Lint GitHub Actions workflows
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        # yamllint disable-line rule:line-length
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run actionlint
+        # yamllint disable-line rule:line-length
+        uses: reviewdog/action-actionlint@dbe5299849118fd6f099ba563d263d770955a64a  # v1.73.2
+        with:
+          github_token: ${{ github.token }}
+          reporter: github-pr-review
+          fail_level: any
+  yamlfix:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        # yamllint disable-line rule:line-length
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        # yamllint disable-line rule:line-length
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+      - name: Set up reviewdog
+        # yamllint disable-line rule:line-length
+        uses: reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f  # v1.5.0
+      - name: Run yamlfix
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ github.token }}
+        run: |-
+          set -o pipefail
+          uvx yamlfix .github/workflows/
+          git diff .github/workflows/ |
+            reviewdog -f=diff -name=yamlfix \
+              -reporter=github-pr-review -fail-level=any
+  zizmor:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        # yamllint disable-line rule:line-length
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        # yamllint disable-line rule:line-length
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+      - name: Set up reviewdog
+        # yamllint disable-line rule:line-length
+        uses: reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f  # v1.5.0
+      - name: Run zizmor
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ github.token }}
+        run: |-
+          set -o pipefail
+          uvx zizmor==1.29.0 --format=sarif . |
+            reviewdog -f=sarif -name=zizmor \
+              -reporter=github-pr-review -fail-level=any
