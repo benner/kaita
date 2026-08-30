@@ -1,0 +1,191 @@
+:root {
+  color-scheme: light;
+  --border: #d7d7db;
+  --muted: #5b5b66;
+  --selected: #e7f0fd;
+  --added: #dafbe1;
+  --removed: #ffebe9;
+  --context: #f6f8fa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  font: 13px system-ui, sans-serif;
+  color: #1c1b22;
+  background: #fff;
+}
+
+#revisions {
+  width: 440px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  overflow: auto;
+}
+
+#revisions header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+#revisions h1 {
+  margin: 0;
+  font-size: 14px;
+  flex: 1;
+}
+
+#recording {
+  color: #c50042;
+  font-weight: 600;
+}
+
+#recording::before {
+  content: "●";
+  margin-right: 4px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+  padding: 3px 8px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+td.time {
+  font-family: ui-monospace, monospace;
+}
+
+tr.old,
+tr.new {
+  background: var(--selected);
+}
+
+tr.old td:first-child::before {
+  content: "−";
+  color: #c50042;
+  margin-right: 4px;
+}
+
+tr.new td:first-child::before {
+  content: "+";
+  color: #1d7a3a;
+  margin-right: 4px;
+}
+
+#empty,
+.hint {
+  padding: 8px 12px;
+  margin: 0;
+  color: var(--muted);
+}
+
+.hint {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+}
+
+kbd {
+  font-family: ui-monospace, monospace;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 4px;
+}
+
+#content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  padding: 4px 12px;
+  font: inherit;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+.tab.active {
+  border-color: var(--border);
+  background: var(--context);
+  font-weight: 600;
+}
+
+#summary {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.pane {
+  flex: 1;
+  margin: 0;
+  overflow: auto;
+  font: 12px ui-monospace, monospace;
+  white-space: pre;
+  tab-size: 2;
+}
+
+.line {
+  padding: 0 12px;
+}
+
+.line.added {
+  background: var(--added);
+}
+
+.line.removed {
+  background: var(--removed);
+}
+
+.expander {
+  display: block;
+  width: 100%;
+  padding: 2px 12px;
+  border: none;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--context);
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.expander:hover {
+  color: #1c1b22;
+}

@@ -19,6 +19,16 @@ never leave the browser.
 3. **View changes** opens the history viewer for this tab.
 4. **Clear collected history** deletes this tab's snapshots.
 
+### Viewer
+
+The left pane lists revisions with time, delta to the previous revision and
+size; the `old` / `new` radio columns pick the pair to compare, defaulting to
+the last two. `j` / `k` move the `new` selection, `Shift` + `j` / `k` move
+`old`. **Diff** shows a unified line diff of the pretty-printed HTML with
+unchanged regions collapsed to three lines of context; **Source** shows the
+`new` snapshot. **Export** downloads the `new` snapshot as `<timestamp>.html`.
+The list refreshes every two seconds while the tab is still recording.
+
 ## Development
 
 One Manifest V3 codebase serves both browser families. Firefox uses
@@ -39,3 +49,10 @@ npm run lint
 
 `npm run lint` runs `eslint .` and `web-ext lint`; both must report zero
 errors.
+
+### Vendored dependencies
+
+`kaita/vendor/diff.js` is `lib/index.mjs` from the
+[`diff`](https://www.npmjs.com/package/diff) package, version 7.0.0, copied
+byte-for-byte with `npm run vendor:diff`. Never edit it by hand; bump the
+pinned version in `package.json` and re-run the script instead.

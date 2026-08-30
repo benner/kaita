@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Kaita</title>
+    <link rel="stylesheet" href="viewer.css" />
+  </head>
+  <body>
+    <aside id="revisions">
+      <header>
+        <h1>Revisions</h1>
+        <span id="recording" hidden>recording</span>
+        <button id="export">Export</button>
+      </header>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>time</th>
+            <th>Δt</th>
+            <th>size</th>
+            <th>old</th>
+            <th>new</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p id="empty" hidden>No snapshots for this tab.</p>
+      <p class="hint">
+        <kbd>j</kbd>/<kbd>k</kbd> move <em>new</em>, <kbd>Shift</kbd>+<kbd>j</kbd>/<kbd>k</kbd>
+        move <em>old</em>
+      </p>
+    </aside>
+    <main id="content">
+      <nav>
+        <button class="tab" data-pane="diff">Diff</button>
+        <button class="tab" data-pane="source">Source</button>
+        <span id="summary"></span>
+      </nav>
+      <pre id="diff" class="pane"></pre>
+      <pre id="source" class="pane" hidden></pre>
+    </main>
+    <script type="module" src="viewer.js"></script>
+  </body>
+</html>
