@@ -1,0 +1,71 @@
+---
+name: Security Audit
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+  schedule:
+    - cron: 13 3 * * *
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout code
+        # yamllint disable-line rule:line-length
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        # yamllint disable-line rule:line-length
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6.5.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Audit shipped dependencies
+        run: |
+          set -o pipefail
+          npm audit --omit=dev --audit-level=moderate 2>&1 | tee audit.log
+      - name: Report failure in a tracking issue
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          run_url="$run_url/actions/runs/$GITHUB_RUN_ID"
+          {
+            echo "Scheduled security audit failed: $run_url"
+            echo
+            echo '```'
+            cat audit.log
+            echo '```'
+            echo
+            echo '<!-- security-audit -->'
+          } > issue-body.md
+          issue=$(gh issue list --state open \
+            --search 'Security audit failing in:title' \
+            --json number --jq '.[0].number')
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body-file issue-body.md
+          else
+            gh issue create --title "Security audit failing" \
+              --body-file issue-body.md
+          fi
+      - name: Close the tracking issue
+        if: success() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |-
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          run_url="$run_url/actions/runs/$GITHUB_RUN_ID"
+          issue=$(gh issue list --state open \
+            --search 'Security audit failing in:title' \
+            --json number --jq '.[0].number')
+          if [ -n "$issue" ]; then
+            gh issue close "$issue" \
+              --comment "Scheduled security audit is green again: $run_url"
+          fi
