@@ -20,6 +20,7 @@ const panes = {
 };
 const frameElement = document.getElementById("frame");
 const pageUrlElement = document.getElementById("page-url");
+const pageRevisionElement = document.getElementById("page-revision");
 const tabButtons = [...document.querySelectorAll(".tab")];
 const renderRadios = [...document.querySelectorAll('input[name="render"]')];
 
@@ -29,6 +30,7 @@ let newId = null;
 let followLatest = true;
 let activePane = "diff";
 let renderRole = "new";
+let pinnedId = null;
 let pageStale = true;
 let renderedPageId = null;
 let renderToken = 0;
@@ -96,6 +98,43 @@ function applyDefaultSelection() {
     newId = ids.at(-1) ?? null;
     oldId = ids.at(-2) ?? newId;
   }
+  if (pinnedId !== null && !ids.includes(pinnedId)) {
+    renderRole = "new";
+    pinnedId = null;
+    syncRenderRadios();
+  }
+}
+
+function displayedId() {
+  if (renderRole === "old") {
+    return oldId;
+  }
+  if (renderRole === "new") {
+    return newId;
+  }
+  return pinnedId;
+}
+
+function syncRenderRadios() {
+  for (const radio of renderRadios) {
+    radio.checked = radio.value === renderRole;
+  }
+}
+
+function setRenderRole(role, id) {
+  renderRole = role;
+  pinnedId = id;
+  syncRenderRadios();
+  renderTable();
+  pageStale = true;
+  if (activePane === "page") {
+    renderPage();
+  }
+}
+
+function viewRevision(id) {
+  setRenderRole("pinned", id);
+  showPane("page");
 }
 
 function select(role, id) {
@@ -134,6 +173,12 @@ function renderTable() {
     const row = document.createElement("tr");
     row.classList.toggle("old", revision.id === oldId);
     row.classList.toggle("new", revision.id === newId);
+    row.classList.toggle("viewed", revision.id === displayedId());
+    row.addEventListener("click", (event) => {
+      if (!event.target.closest("input")) {
+        viewRevision(revision.id);
+      }
+    });
     row.append(
       textCell(String(index + 1)),
       textCell(formatTime(revision.ts), "time"),
@@ -205,7 +250,7 @@ function renderDiff(oldHtml, newHtml) {
 }
 
 async function renderPage() {
-  const id = renderRole === "old" ? oldId : newId;
+  const id = displayedId();
   if (id === null) {
     return;
   }
@@ -214,7 +259,9 @@ async function renderPage() {
     return;
   }
   const snapshot = await getSnapshot(id);
+  const index = revisions.findIndex((revision) => revision.id === id);
   frameElement.srcdoc = withBase(snapshot.raw, snapshot.url);
+  pageRevisionElement.textContent = `#${index + 1}`;
   pageUrlElement.textContent = snapshot.url;
   renderedPageId = id;
 }
@@ -226,6 +273,7 @@ async function renderPanes() {
     panes.source.textContent = "";
     summaryElement.textContent = "";
     frameElement.removeAttribute("srcdoc");
+    pageRevisionElement.textContent = "";
     pageUrlElement.textContent = "";
     renderedPageId = null;
     return;
@@ -318,10 +366,7 @@ for (const button of tabButtons) {
   button.addEventListener("click", () => showPane(button.dataset.pane));
 }
 for (const radio of renderRadios) {
-  radio.addEventListener("change", () => {
-    renderRole = radio.value;
-    renderPage();
-  });
+  radio.addEventListener("change", () => setRenderRole(radio.value, null));
 }
 exportButton.addEventListener("click", exportSnapshot);
 document.addEventListener("keydown", handleKey);

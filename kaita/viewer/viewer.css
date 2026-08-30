@@ -80,9 +80,25 @@ td.time {
   font-family: ui-monospace, monospace;
 }
 
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background: var(--context);
+}
+
 tr.old,
 tr.new {
   background: var(--selected);
+}
+
+tr.viewed td:first-child {
+  box-shadow: inset 3px 0 0 #0060df;
+}
+
+#page-revision {
+  font-weight: 600;
 }
 
 tr.old td:first-child::before {

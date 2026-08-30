@@ -28,7 +28,7 @@
       <p id="empty" hidden>No snapshots for this tab.</p>
       <p class="hint">
         <kbd>j</kbd>/<kbd>k</kbd> move <em>new</em>, <kbd>Shift</kbd>+<kbd>j</kbd>/<kbd>k</kbd>
-        move <em>old</em>
+        move <em>old</em>. Click a row to view that revision as a page.
       </p>
     </aside>
     <main id="content">
@@ -44,6 +44,7 @@
         <div class="page-toolbar">
           <label><input type="radio" name="render" value="old" /> old</label>
           <label><input type="radio" name="render" value="new" checked /> new</label>
+          <span id="page-revision"></span>
           <span id="page-url"></span>
         </div>
         <iframe id="frame" sandbox="" title="Rendered snapshot"></iframe>
