@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Kaita — DOM History",
+  "short_name": "Kaita",
+  "version": "0.1.0",
+  "description": "Record DOM snapshots of a page on demand and browse or diff them like a wiki page history.",
+  "permissions": ["activeTab", "scripting", "storage", "unlimitedStorage"],
+  "background": {
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Kaita — DOM History"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "kaita@benner.github.io",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}
