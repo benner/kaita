@@ -6,14 +6,13 @@ install from the Chrome Web Store.
 
 ## Build
 
-```sh
-npm run lint
-npm run build
-```
-
-Upload `web-ext-artifacts/kaita_dom_history-<version>.zip` to both stores.
-Bump `version` in `kaita/manifest.json` before every upload; stores reject
-a version that was uploaded before.
+Bump `version` in `kaita/manifest.json` (stores reject a version that was
+uploaded before), commit, and push a matching `vX.Y.Z` tag. The *Build or
+release* workflow lints, refuses a tag that does not match the manifest
+version, and publishes a GitHub release with a git-cliff changelog,
+`kaita_dom_history-<version>.zip` and `SHA256SUMS`. Upload that zip to
+both stores. Pull requests run the same lint and build with the zip as a
+workflow artifact; `npm run lint && npm run build` does the same locally.
 
 ## Listing text
 

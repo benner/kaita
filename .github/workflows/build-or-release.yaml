@@ -1,0 +1,77 @@
+---
+name: Build or release
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # yamllint disable-line rule:line-length
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          fetch-tags: true
+      # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6.5.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Check that the manifest version matches the tag
+        if: ${{ github.ref_type == 'tag' }}
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          manifest_version="$(jq --raw-output .version kaita/manifest.json)"
+          if [ "${RELEASE_TAG#v}" != "${manifest_version}" ]; then
+              echo "${RELEASE_TAG} != manifest version ${manifest_version}"
+              exit 1
+          fi
+      - name: Build store package
+        run: npm run build
+      - name: Upload store package as artifact
+        if: ${{ github.event_name == 'pull_request' }}
+        # yamllint disable-line rule:line-length
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: kaita-store-package
+          path: web-ext-artifacts/*.zip
+          if-no-files-found: error
+      - name: Generate a changelog
+        # yamllint disable-line rule:line-length
+        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5  # v4.8.0
+        if: ${{ github.ref_type == 'tag' }}
+        with:
+          args: --verbose --current --tag-pattern "v*"
+        env:
+          OUTPUT: CHANGELOG.md
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish release
+        if: ${{ github.ref_type == 'tag' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |-
+          sha256sum web-ext-artifacts/*.zip > web-ext-artifacts/SHA256SUMS
+          gh release view "${RELEASE_TAG}" >/dev/null 2>&1 || \
+            gh release create "${RELEASE_TAG}" \
+              --verify-tag \
+              --title "${RELEASE_TAG}" \
+              --notes-file CHANGELOG.md
+          gh release upload "${RELEASE_TAG}" \
+            web-ext-artifacts/*.zip web-ext-artifacts/SHA256SUMS
