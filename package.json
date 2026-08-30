@@ -1,0 +1,23 @@
+{
+  "name": "kaita",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "npm run lint:eslint && npm run lint:web-ext",
+    "lint:eslint": "eslint .",
+    "lint:web-ext": "web-ext lint",
+    "vendor:diff": "cp node_modules/diff/lib/index.mjs kaita/vendor/diff.js"
+  },
+  "webExt": {
+    "sourceDir": "kaita",
+    "artifactsDir": "web-ext-artifacts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "diff": "7.0.0",
+    "eslint": "^10.9.1",
+    "globals": "^17.11.0",
+    "web-ext": "^10.6.0"
+  }
+}
