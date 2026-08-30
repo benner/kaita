@@ -22,4 +22,14 @@ export default [
     files: ["eslint.config.js"],
     languageOptions: { globals: globals.node },
   },
+  {
+    files: ["demo/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+        ...globals.webextensions,
+      },
+    },
+  },
 ];

@@ -8,6 +8,21 @@ Nothing runs on any page until you click **Record changes** on it, so
 recording is opt-in per site. Snapshots are stored locally in IndexedDB and
 never leave the browser.
 
+![Recording a TodoMVC page, then browsing the revisions as diff, source and rendered page](demo/demo.gif)
+
+## Privacy
+
+Kaita records the HTML of a page only while you have clicked **Record
+changes** on that page, and only for that tab. Snapshots are stored in the
+browser's local IndexedDB on your device. Nothing is transmitted anywhere:
+the extension makes no network requests of its own, has no analytics, no
+accounts and no third-party services. Clear a tab's history with **Clear
+collected history**, or remove everything by uninstalling the extension.
+
+The **Page** tab in the viewer renders a snapshot in a sandboxed frame; the
+frame may load stylesheets, images and fonts referenced by the snapshot
+from the original site, exactly as a normal visit to that page would.
+
 ## Usage
 
 1. Open the page you want to watch and click the toolbar button.
@@ -55,7 +70,8 @@ npm run lint
 ```
 
 `npm run lint` runs `eslint .` and `web-ext lint`; both must report zero
-errors.
+errors. `npm run build` packs `kaita/` into `web-ext-artifacts/` for store
+submission; see `STORE.md` for the listing checklist.
 
 ### Icons
 
@@ -63,9 +79,25 @@ errors.
 are generated from it with `npm run icons`, which needs `rsvg-convert`
 (librsvg). Edit the SVG, re-run the script, commit both.
 
+### Demo recording
+
+`npm run demo` regenerates `demo/demo.mp4`, `demo/demo.gif` and the store
+screenshots in `demo/screenshots/` by driving a headless Firefox
+(`FIREFOX_BINARY`, default `firefox` on `PATH`) through the extension on
+<https://todomvc.com/examples/javascript-es6/dist/>, then stitching the
+frames with `ffmpeg`. A toolbar popup cannot be opened by automation, so
+the script loads the real `popup.html` in a tab bound to the demo page,
+clicks its buttons there and composites that rendering over the page
+frame; a copy of the extension with `<all_urls>` stands in for the
+`activeTab` grant. The extension code itself runs unchanged.
+
 ### Vendored dependencies
 
 `kaita/vendor/diff.js` is `lib/index.mjs` from the
 [`diff`](https://www.npmjs.com/package/diff) package, version 7.0.0, copied
 byte-for-byte with `npm run vendor:diff`. Never edit it by hand; bump the
 pinned version in `package.json` and re-run the script instead.
+
+## License
+
+MIT, see `LICENSE`. The vendored `diff` library is BSD-3-Clause.
