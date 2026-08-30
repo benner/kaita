@@ -57,6 +57,12 @@ npm run lint
 `npm run lint` runs `eslint .` and `web-ext lint`; both must report zero
 errors.
 
+### Icons
+
+`kaita/icons/icon.svg` is the only source. The PNGs the manifest references
+are generated from it with `npm run icons`, which needs `rsvg-convert`
+(librsvg). Edit the SVG, re-run the script, commit both.
+
 ### Vendored dependencies
 
 `kaita/vendor/diff.js` is `lib/index.mjs` from the
